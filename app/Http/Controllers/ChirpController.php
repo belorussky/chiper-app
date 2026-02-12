@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Chirp;
 
 class ChirpController extends Controller
 {
@@ -11,23 +12,11 @@ class ChirpController extends Controller
      */
     public function index()
     {
-        $chirps = [
-            [
-                'author' => 'John Doe',
-                'message' => 'Just deployed my first Laravel app!',
-                'time' => '1 hour ago',
-            ],
-            [
-                'author' => 'Jane Smith',
-                'message' => 'Laravel makes building web apps fun again!',
-                'time' => '2 hours ago',
-            ],
-            [
-                'author' => 'Alice Johnson',
-                'message' => 'Working on some new features for the app.',
-                'time' => '3 hours ago',
-            ]
-            ];
+        $chirps = Chirp::with('user')
+        ->latest()
+        ->take(50)
+        ->get();
+        
         return view('home', ['chirps' => $chirps]);
     }
 
