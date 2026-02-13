@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Chirp;
 use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ChirpController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -41,20 +43,16 @@ class ChirpController extends Controller
                 'string',
                 'max:255',
                 'min:5',
-                // Rule::unique('chirps')->where(function ($query) use ($request) {
-                //     return $query->where('user_id', $request->user()->id);
-                // }),
+                Rule::unique('chirps')->where(function ($query) use ($request) {
+                    return $query->where('user_id', $request->user()->id);
+                }),
             ],
         ], [
             'message.required' => 'Please write something to chirp!',
             'message.max' => 'Chirps must be 255 characters or less.',
         ]);
     
-        Chirp::create([
-            'message' => $validated['message'],
-            // 'user_id' => $request->user()->id,
-            'user_id' => null,
-        ]);
+        auth()->user()->chirps()->create($validated);
     
         // Redirect back to the feed
         return redirect('/')->with('success', 'Your chirp has been posted!');
@@ -73,6 +71,8 @@ class ChirpController extends Controller
      */
     public function edit(Chirp $chirp)
     {
+        $this->authorize('update', $chirp);
+
         return view('chirps.edit', compact('chirp'));
     }
 
@@ -81,9 +81,7 @@ class ChirpController extends Controller
      */
     public function update(Request $request, Chirp $chirp)
     {
-        // if ($request->user()->cannot('update', $chirp)) {
-        //     abort(403);
-        // }
+        $this->authorize('update', $chirp);
         
         // Validate
         $validated = $request->validate([
@@ -104,7 +102,7 @@ class ChirpController extends Controller
      */
     public function destroy(Chirp $chirp)
     {
-        // $this->authorize('update', $chirp);
+        $this->authorize('update', $chirp);
 
         $chirp->delete();
  
